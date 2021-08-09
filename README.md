@@ -1,2 +1,2 @@
 # s-care
-Repository for my thesis project
+Repository for my final thesis project
