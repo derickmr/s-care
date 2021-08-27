@@ -11,5 +11,6 @@ public class TextClassificationData {
     private String text;
     private String classification;
     private Date date;
+    private Double probability;
 
 }

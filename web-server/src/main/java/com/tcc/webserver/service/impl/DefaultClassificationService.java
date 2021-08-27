@@ -35,9 +35,10 @@ public class DefaultClassificationService implements ClassificationService {
     @Override
     public TextClassificationData classifyTextAndCreateContext(TextClassificationData textClassificationData) {
 
-        final String classification = this.getClassificationForText(textClassificationData.getText());
+        final String response = this.getClassificationForText(textClassificationData.getText());
 
-        textClassificationData.setClassification(classification);
+        textClassificationData.setClassification(this.getClassificationFromResponse(response));
+        textClassificationData.setProbability(this.getProbabilityFromResponse(response));
 
         this.createContext(textClassificationData);
 
@@ -50,6 +51,7 @@ public class DefaultClassificationService implements ClassificationService {
 
         context.setText(textClassificationData.getText());
         context.setClassification(textClassificationData.getClassification());
+        context.setProbability(textClassificationData.getProbability());
         context.setUser(this.getUserRepository().getById(textClassificationData.getUserId()));
         context.setDate(textClassificationData.getDate());
 
@@ -63,6 +65,14 @@ public class DefaultClassificationService implements ClassificationService {
         final ResponseEntity<String> response = this.restTemplate().postForEntity(this.getClassifierEndpoint(), requestBody, String.class);
 
         return response.getBody();
+    }
+
+    protected String getClassificationFromResponse(final String response) {
+        return response.split(": ")[0];
+    }
+
+    protected Double getProbabilityFromResponse (final String response) {
+        return Double.parseDouble(response.split(": ")[1])*100;
     }
 
     @Bean
