@@ -1,27 +1,24 @@
 package com.tcc.webserver.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.List;
 
-@Data
 @Entity
-public class User {
+@Data
+public class Location {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonIgnore
     private Long id;
 
-    private String name;
-
-    @OneToMany
+    @OneToOne
     @Cascade(value = org.hibernate.annotations.CascadeType.ALL)
-    private List<AlarmContact> alarmContacts;
+    private GeographicalLocation geographicalLocation;
 
-    @OneToMany
-    private List<Context> contexts;
+    private String semanticLocation;
 
 }
-

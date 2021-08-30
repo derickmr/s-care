@@ -1,5 +1,6 @@
 package com.tcc.webserver.dto;
 
+import com.tcc.webserver.models.Location;
 import lombok.Data;
 
 import java.util.Date;
@@ -12,5 +13,6 @@ public class TextClassificationData {
     private String classification;
     private Date date;
     private Double probability;
+    private Location location;
 
 }

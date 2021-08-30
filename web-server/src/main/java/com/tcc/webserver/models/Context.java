@@ -1,6 +1,7 @@
 package com.tcc.webserver.models;
 
 import lombok.Data;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -20,5 +21,9 @@ public class Context {
     private String text;
     private String classification;
     private Double probability;
+
+    @OneToOne
+    @Cascade(value = org.hibernate.annotations.CascadeType.ALL)
+    private Location location;
 
 }

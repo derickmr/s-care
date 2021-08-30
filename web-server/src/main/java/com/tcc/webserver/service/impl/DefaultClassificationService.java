@@ -54,6 +54,7 @@ public class DefaultClassificationService implements ClassificationService {
         context.setProbability(textClassificationData.getProbability());
         context.setUser(this.getUserRepository().getById(textClassificationData.getUserId()));
         context.setDate(textClassificationData.getDate());
+        context.setLocation(textClassificationData.getLocation());
 
         this.getContextRepository().save(context);
     }
