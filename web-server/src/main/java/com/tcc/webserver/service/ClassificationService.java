@@ -6,4 +6,6 @@ public interface ClassificationService {
 
     TextClassificationData classifyTextAndCreateContext (TextClassificationData textClassificationData);
 
+    int getFlagForClassificationProbability(double probability);
+
 }

@@ -3,18 +3,16 @@ package com.tcc.webserver.service.impl;
 import com.tcc.webserver.dto.TextClassificationData;
 import com.tcc.webserver.dto.TextClassificationRequest;
 import com.tcc.webserver.models.Context;
+import com.tcc.webserver.models.User;
 import com.tcc.webserver.repository.ContextRepository;
 import com.tcc.webserver.repository.UserRepository;
 import com.tcc.webserver.service.ClassificationService;
+import com.tcc.webserver.service.NotificationService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -29,6 +27,9 @@ public class DefaultClassificationService implements ClassificationService {
     @Resource
     private ContextRepository contextRepository;
 
+    @Resource
+    private NotificationService notificationService;
+
     @Value("${tcc.text-classifier-endpoint}")
     private String classifierEndpoint;
 
@@ -42,7 +43,33 @@ public class DefaultClassificationService implements ClassificationService {
 
         this.createContext(textClassificationData);
 
+
+        final Long userId = textClassificationData.getUserId();
+        final User user = this.getUserRepository().getById(userId);
+
+        if (notificationService.shouldSendNotificationForUser(user)) {
+            notificationService.sendEmailNotificationForUser(user);
+        }
+
        return textClassificationData;
+    }
+
+    @Override
+    public int getFlagForClassificationProbability(double probability) {
+
+        if (probability >= 0.95) {
+            return 4;
+        }
+
+        if (probability >= 0.85) {
+            return 3;
+        }
+
+        if (probability >= 0.75) {
+            return 2;
+        }
+
+        return 1;
     }
 
     protected void createContext(TextClassificationData textClassificationData) {
@@ -55,6 +82,7 @@ public class DefaultClassificationService implements ClassificationService {
         context.setUser(this.getUserRepository().getById(textClassificationData.getUserId()));
         context.setDate(textClassificationData.getDate());
         context.setLocation(textClassificationData.getLocation());
+        context.setRiskFlag(this.getFlagForClassificationProbability(context.getProbability()));
 
         this.getContextRepository().save(context);
     }

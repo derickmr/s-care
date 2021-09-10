@@ -21,6 +21,7 @@ public class Context {
     private String text;
     private String classification;
     private Double probability;
+    private Integer riskFlag;
 
     @OneToOne
     @Cascade(value = org.hibernate.annotations.CascadeType.ALL)
