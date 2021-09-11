@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Data
@@ -20,5 +21,7 @@ public class Location {
     private GeographicalLocation geographicalLocation;
 
     private String semanticLocation;
+
+    private Date date;
 
 }

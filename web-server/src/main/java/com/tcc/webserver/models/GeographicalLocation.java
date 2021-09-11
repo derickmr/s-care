@@ -1,7 +1,6 @@
 package com.tcc.webserver.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import lombok.Data;
 
 import javax.persistence.Entity;

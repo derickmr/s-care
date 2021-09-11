@@ -43,7 +43,6 @@ public class DefaultClassificationService implements ClassificationService {
 
         this.createContext(textClassificationData);
 
-
         final Long userId = textClassificationData.getUserId();
         final User user = this.getUserRepository().getById(userId);
 
@@ -51,21 +50,21 @@ public class DefaultClassificationService implements ClassificationService {
             notificationService.sendEmailNotificationForUser(user);
         }
 
-       return textClassificationData;
+        return textClassificationData;
     }
 
     @Override
     public int getFlagForClassificationProbability(double probability) {
 
-        if (probability >= 0.95) {
+        if (probability >= 95) {
             return 4;
         }
 
-        if (probability >= 0.85) {
+        if (probability >= 85) {
             return 3;
         }
 
-        if (probability >= 0.75) {
+        if (probability >= 75) {
             return 2;
         }
 
@@ -87,7 +86,7 @@ public class DefaultClassificationService implements ClassificationService {
         this.getContextRepository().save(context);
     }
 
-    protected String getClassificationForText (final String text) {
+    protected String getClassificationForText(final String text) {
         TextClassificationRequest requestBody = new TextClassificationRequest();
         requestBody.setText(text);
 
@@ -100,8 +99,8 @@ public class DefaultClassificationService implements ClassificationService {
         return response.split(": ")[0];
     }
 
-    protected Double getProbabilityFromResponse (final String response) {
-        return Double.parseDouble(response.split(": ")[1])*100;
+    protected Double getProbabilityFromResponse(final String response) {
+        return Double.parseDouble(response.split(": ")[1]) * 100;
     }
 
     @Bean
