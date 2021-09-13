@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 @Getter
@@ -32,6 +33,12 @@ public class DefaultClassificationService implements ClassificationService {
 
     @Value("${tcc.text-classifier-endpoint}")
     private String classifierEndpoint;
+
+    private static final int BLACK_FLAG = 4;
+    private static final int RED_FLAG = 3;
+    private static final int ORANGE_FLAG = 2;
+    private static final int YELLOW_FLAG = 1;
+    private static final int NO_RISK_FLAG = 0;
 
     @Override
     public TextClassificationData classifyTextAndCreateContext(TextClassificationData textClassificationData) {
@@ -53,22 +60,95 @@ public class DefaultClassificationService implements ClassificationService {
         return textClassificationData;
     }
 
+    /**
+     * Possíveis bandeiras de certeza de risco:
+     * Preta - Certeza > 95%
+     * Vermelha - Certeza > 85%
+     * Laranja - Certeza > 75%
+     * Amarela - Certeza > 50%
+     *
+     * @param probability
+     * @return
+     */
     @Override
     public int getFlagForClassificationProbability(double probability) {
 
         if (probability >= 95) {
-            return 4;
+            return BLACK_FLAG;
         }
 
         if (probability >= 85) {
-            return 3;
+            return RED_FLAG;
         }
 
         if (probability >= 75) {
-            return 2;
+            return ORANGE_FLAG;
         }
 
-        return 1;
+        return YELLOW_FLAG;
+    }
+
+    /**
+     * Cenários para enviar a notificação:
+     * 1 - A classificação do último contexto é uma bandeira preta (certeza > 95%)
+     * 2 - O usuário apresentou uma piora de qualquer bandeira para a bandeira vermelha (certeza > 85%)
+     * 3 - A classificação do último contexto é uma bandeira vermelha (certeza > 85%) e usuário apresentou outra bandeira vermelha nos últimos 5 contextos (exemplo: preta -> vermelha -> vermelha)
+     * 4 - O usuário apresentou uma piora de pelo menos 2 bandeiras (exemplo, verde -> laranja)
+     * 5 - A media das ultimas 5 bandeiras foi acima de 80%
+     *
+     * @param contexts
+     * @param lastContext
+     * @return
+     */
+    @Override
+    public boolean isUserAtRisk(List<Context> contexts, Context lastContext) {
+        if (lastContextIsBlackFlag(lastContext)) {
+            return true;
+        }
+
+        if (worsenToRedFlag(contexts, lastContext)) {
+            return true;
+        }
+
+        if (lastContextIsRedFlag(lastContext) && containsRedFlag(contexts.subList(1, contexts.size()))) {
+            return true;
+        }
+
+        if (hasPresentedWorsenOfAtLeastTwoFlags(contexts)) {
+            return true;
+        }
+
+        return getProbabilityAverage(contexts) > 80;
+    }
+
+    private Double getProbabilityAverage(List<Context> contexts) {
+        return (contexts.stream().mapToDouble(Context::getProbability).sum()) / contexts.size();
+    }
+
+    private boolean containsRedFlag(List<Context> contexts) {
+        return contexts.stream().anyMatch(
+                context -> context.getProbability() == RED_FLAG
+        );
+    }
+
+    private boolean lastContextIsRedFlag(Context lastContext) {
+        return lastContext.getProbability() == RED_FLAG;
+    }
+
+    private boolean hasPresentedWorsenOfAtLeastTwoFlags(List<Context> contexts) {
+        return (contexts.get(0).getProbability() - this.getLowestProbabilityFromContexts(contexts.subList(1, contexts.size())).getProbability()) >= 2;
+    }
+
+    private Context getLowestProbabilityFromContexts(List<Context> contexts) {
+        return contexts.stream().reduce((i, j) -> i.getProbability() < j.getProbability() ? i : j).get();
+    }
+
+    private boolean worsenToRedFlag(List<Context> contexts, Context lastContext) {
+        return lastContext.getRiskFlag() == RED_FLAG && contexts.get(contexts.size() - 2).getRiskFlag() < RED_FLAG;
+    }
+
+    private boolean lastContextIsBlackFlag(Context lastContext) {
+        return lastContext.getRiskFlag() == BLACK_FLAG;
     }
 
     protected void createContext(TextClassificationData textClassificationData) {
@@ -81,7 +161,12 @@ public class DefaultClassificationService implements ClassificationService {
         context.setUser(this.getUserRepository().getById(textClassificationData.getUserId()));
         context.setDate(textClassificationData.getDate());
         context.setLocation(textClassificationData.getLocation());
-        context.setRiskFlag(this.getFlagForClassificationProbability(context.getProbability()));
+
+        if (context.getClassification().equalsIgnoreCase("Risk")) {
+            context.setRiskFlag(this.getFlagForClassificationProbability(context.getProbability()));
+        } else {
+            context.setRiskFlag(NO_RISK_FLAG);
+        }
 
         this.getContextRepository().save(context);
     }

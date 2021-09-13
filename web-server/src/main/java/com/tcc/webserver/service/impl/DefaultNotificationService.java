@@ -1,6 +1,7 @@
 package com.tcc.webserver.service.impl;
 
 import com.tcc.webserver.models.*;
+import com.tcc.webserver.service.ClassificationService;
 import com.tcc.webserver.service.ContextService;
 import com.tcc.webserver.service.NotificationService;
 import com.tcc.webserver.service.UserService;
@@ -17,12 +18,6 @@ import java.util.stream.Collectors;
 @Service
 public class DefaultNotificationService implements NotificationService {
 
-    private static final int BLACK_FLAG = 4;
-    private static final int RED_FLAG = 3;
-    private static final int ORANGE_FLAG = 2;
-    private static final int YELLOW_FLAG = 1;
-    private static final int MAXIMUM_THRESHOLD = 12;
-
     @Resource
     private ContextService contextService;
 
@@ -31,6 +26,9 @@ public class DefaultNotificationService implements NotificationService {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ClassificationService classificationService;
 
     @Override
     public boolean shouldSendNotificationForUser(User user) {
@@ -41,7 +39,7 @@ public class DefaultNotificationService implements NotificationService {
             return false;
         }
 
-        return isUserAtRisk(contexts, lastContext);
+        return classificationService.isUserAtRisk(contexts, lastContext);
     }
 
     @Override
@@ -87,47 +85,6 @@ public class DefaultNotificationService implements NotificationService {
         simpleMailMessage.setText(body.toString());
 
         return simpleMailMessage;
-    }
-
-    protected boolean isUserAtRisk(List<Context> contexts, Context lastContext) {
-        if (lastContextIsBlackFlag(lastContext)) {
-            return true;
-        }
-
-        if (worsenFromOrangeToRedFlag(contexts, lastContext)) {
-            return true;
-        }
-
-        if (hasBlackFlag(contexts) && presentWorsen(contexts)) {
-            return true;
-        }
-
-        int riskFlagsSum = contexts.stream().mapToInt(Context::getRiskFlag).sum();
-
-        return hasNotPresentedYellowFlag(riskFlagsSum);
-    }
-
-    private boolean hasNotPresentedYellowFlag(int riskFlagsSum) {
-        return riskFlagsSum > MAXIMUM_THRESHOLD;
-    }
-
-    private boolean worsenFromOrangeToRedFlag(List<Context> contexts, Context lastContext) {
-        return lastContext.getRiskFlag() == RED_FLAG && contexts.get(contexts.size() - 2).getRiskFlag() == ORANGE_FLAG;
-    }
-
-    private boolean lastContextIsBlackFlag(Context lastContext) {
-        return lastContext.getRiskFlag() == BLACK_FLAG;
-    }
-
-    private boolean presentWorsen(List<Context> contexts) {
-        final Context lastContext = contexts.get(contexts.size() - 1);
-        final Context penultimateContext = contexts.get(contexts.size() - 2);
-
-        return lastContext.getRiskFlag() > penultimateContext.getRiskFlag();
-    }
-
-    private boolean hasBlackFlag(List<Context> contexts) {
-        return contexts.stream().anyMatch(context -> context.getRiskFlag() == BLACK_FLAG);
     }
 
 }
