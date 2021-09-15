@@ -11,5 +11,5 @@ public interface ClassificationService {
 
     int getFlagForClassificationProbability(double probability);
 
-    boolean isUserAtRisk(List<Context> contexts, Context lastContext);
+    boolean isUserAtRisk(List<Context> contexts);
 }

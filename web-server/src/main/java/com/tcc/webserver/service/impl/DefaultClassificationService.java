@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -97,28 +98,35 @@ public class DefaultClassificationService implements ClassificationService {
      * 5 - A media das ultimas 5 bandeiras foi acima de 80%
      *
      * @param contexts
-     * @param lastContext
      * @return
      */
     @Override
-    public boolean isUserAtRisk(List<Context> contexts, Context lastContext) {
-        if (lastContextIsBlackFlag(lastContext)) {
+    public boolean isUserAtRisk(List<Context> contexts) {
+
+        Context currentContext = contexts.iterator().next();
+        List<Context> previousContexts = contexts.subList(1, contexts.size());
+
+        if (contextIsBlackFlag(currentContext)) {
             return true;
         }
 
-        if (worsenToRedFlag(contexts, lastContext)) {
+        if (hasWorsenToRedFlag(currentContext, previousContexts)) {
             return true;
         }
 
-        if (lastContextIsRedFlag(lastContext) && containsRedFlag(contexts.subList(1, contexts.size()))) {
+        if (containsMultipleRedFlags(currentContext, previousContexts)) {
             return true;
         }
 
-        if (hasPresentedWorsenOfAtLeastTwoFlags(contexts)) {
+        if (hasPresentedWorsenOfAtLeastTwoFlags(currentContext, previousContexts)) {
             return true;
         }
 
         return getProbabilityAverage(contexts) > 80;
+    }
+
+    private boolean containsMultipleRedFlags(Context currentContext, List<Context> previousContexts) {
+        return isRedFlag(currentContext) && containsRedFlag(previousContexts);
     }
 
     private Double getProbabilityAverage(List<Context> contexts) {
@@ -127,28 +135,33 @@ public class DefaultClassificationService implements ClassificationService {
 
     private boolean containsRedFlag(List<Context> contexts) {
         return contexts.stream().anyMatch(
-                context -> context.getProbability() == RED_FLAG
+                this::isRedFlag
         );
     }
 
-    private boolean lastContextIsRedFlag(Context lastContext) {
-        return lastContext.getProbability() == RED_FLAG;
+    private boolean isRedFlag(Context context) {
+        return context.getProbability() == RED_FLAG;
     }
 
-    private boolean hasPresentedWorsenOfAtLeastTwoFlags(List<Context> contexts) {
-        return (contexts.get(0).getProbability() - this.getLowestProbabilityFromContexts(contexts.subList(1, contexts.size())).getProbability()) >= 2;
+    private boolean hasPresentedWorsenOfAtLeastTwoFlags(Context currentContext, List<Context> previousContexts) {
+        return (currentContext.getProbability() - this.getContextWithLowestProbability(previousContexts).getProbability()) >= 2;
     }
 
-    private Context getLowestProbabilityFromContexts(List<Context> contexts) {
+    private Context getContextWithLowestProbability(List<Context> contexts) {
         return contexts.stream().reduce((i, j) -> i.getProbability() < j.getProbability() ? i : j).get();
     }
 
-    private boolean worsenToRedFlag(List<Context> contexts, Context lastContext) {
-        return lastContext.getRiskFlag() == RED_FLAG && contexts.get(contexts.size() - 2).getRiskFlag() < RED_FLAG;
+    private boolean hasWorsenToRedFlag(Context currentContext, List<Context> previousContexts) {
+
+        if (CollectionUtils.isEmpty(previousContexts)) {
+            return false;
+        }
+
+        return currentContext.getRiskFlag() == RED_FLAG && previousContexts.iterator().next().getRiskFlag() < RED_FLAG;
     }
 
-    private boolean lastContextIsBlackFlag(Context lastContext) {
-        return lastContext.getRiskFlag() == BLACK_FLAG;
+    private boolean contextIsBlackFlag(Context context) {
+        return context.getRiskFlag() == BLACK_FLAG;
     }
 
     protected void createContext(TextClassificationData textClassificationData) {

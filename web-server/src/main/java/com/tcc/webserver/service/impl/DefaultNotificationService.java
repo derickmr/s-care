@@ -33,13 +33,12 @@ public class DefaultNotificationService implements NotificationService {
     @Override
     public boolean shouldSendNotificationForUser(User user) {
         final List<Context> contexts = this.contextService.getLastSubContextsFromUser(user, 5);
-        final Context lastContext = this.contextService.getLastContextFromUser(user);
 
-        if (lastContext == null) {
+        if (CollectionUtils.isEmpty(contexts)) {
             return false;
         }
 
-        return classificationService.isUserAtRisk(contexts, lastContext);
+        return classificationService.isUserAtRisk(contexts);
     }
 
     @Override

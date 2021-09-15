@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface ContextRepository extends JpaRepository<Context, Long> {
 
-    List<Context> getAllByUserOrderByDate(User user);
+    List<Context> getAllByUserOrderByDateDesc(User user);
 
 }

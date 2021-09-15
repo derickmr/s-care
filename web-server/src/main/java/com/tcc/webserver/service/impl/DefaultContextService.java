@@ -39,13 +39,10 @@ public class DefaultContextService implements ContextService {
         final List<Context> contexts = user.getContexts();
 
         if (CollectionUtils.isEmpty(contexts)) {
-            //TODO validate order (asc/desc)
-            return contextRepository.getAllByUserOrderByDate(user);
+            return contextRepository.getAllByUserOrderByDateDesc(user);
         }
 
         contexts.sort(Comparator.comparing(Context::getDate));
-
-        //TODO validate order (asc/desc)
         Collections.reverse(contexts);
 
         return contexts;
