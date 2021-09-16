@@ -27,6 +27,11 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
+    public User getById(Long userId) {
+        return this.userRepository.getById(userId);
+    }
+
+    @Override
     public Location getUserLastKnownLocation(User user) {
         List<Context> contexts = contextService.getOrderedUserContexts(user);
 

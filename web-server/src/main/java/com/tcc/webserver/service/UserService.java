@@ -9,4 +9,6 @@ public interface UserService {
 
     Location getUserLastKnownLocation(User user);
 
+    User getById(Long userId);
+
 }
