@@ -19,7 +19,7 @@ public class Context {
 
     private Date date;
 
-    @Column(length = 3000)
+    @Column(length = 50000)
     private String text;
 
     private String classification;

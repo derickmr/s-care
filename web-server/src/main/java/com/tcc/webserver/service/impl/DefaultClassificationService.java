@@ -47,7 +47,7 @@ public class DefaultClassificationService implements ClassificationService {
         final String response = this.getClassificationForText(textClassificationData.getText());
 
         textClassificationData.setClassification(this.getClassificationFromResponse(response));
-        textClassificationData.setProbability(this.getProbabilityFromResponse(response));
+        textClassificationData.setProbability(this.getProbabilityFromResponse(response, textClassificationData.getClassification()));
 
         this.createContext(textClassificationData);
 
@@ -144,13 +144,24 @@ public class DefaultClassificationService implements ClassificationService {
     }
 
     private boolean hasPresentedWorsenOfAtLeastTwoFlags(Context currentContext, List<Context> previousContexts) {
-        return (currentContext.getProbability() - this.getContextWithLowestProbability(previousContexts).getProbability()) >= 2;
+        final Context lowestProbabilityContext = this.getContextWithLowestProbability(previousContexts);
+
+        if (lowestProbabilityContext == null) {
+            return false;
+        }
+
+        return (currentContext.getProbability() - lowestProbabilityContext.getProbability()) >= 2;
     }
 
     private Context getContextWithLowestProbability(List<Context> contexts) {
+        if (CollectionUtils.isEmpty(contexts)) {
+            return null;
+        }
+
         if (contexts.size() < 2) {
             return contexts.iterator().next();
         }
+
         return contexts.stream().reduce((i, j) -> i.getProbability() < j.getProbability() ? i : j).get();
     }
 
@@ -173,10 +184,10 @@ public class DefaultClassificationService implements ClassificationService {
 
         context.setText(textClassificationData.getText());
         context.setClassification(textClassificationData.getClassification());
-        context.setProbability(textClassificationData.getProbability());
         context.setUser(this.getUserRepository().getById(textClassificationData.getUserId()));
         context.setDate(textClassificationData.getDate());
         context.setLocation(textClassificationData.getLocation());
+        context.setProbability(textClassificationData.getProbability());
 
         if (context.getClassification().equalsIgnoreCase("Risk")) {
             context.setRiskFlag(this.getFlagForClassificationProbability(context.getProbability()));
@@ -200,8 +211,15 @@ public class DefaultClassificationService implements ClassificationService {
         return response.split(": ")[0];
     }
 
-    protected Double getProbabilityFromResponse(final String response) {
-        return Double.parseDouble(response.split(": ")[1]) * 100;
+    protected Double getProbabilityFromResponse(final String response, final String classification) {
+        Double probability = Double.parseDouble(response.split(": ")[1]) * 100;
+
+        if (classification.equalsIgnoreCase("No risk")) {
+            return 100 - probability;
+        }
+
+        return probability;
+
     }
 
     @Bean

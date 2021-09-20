@@ -25,27 +25,27 @@ public abstract class AbstractUserScenarioStrategy implements UserScenarioStrate
 
     @SneakyThrows
     @Override
-    public void run(int quantity) {
+    public List<TextClassificationData> run(int quantity) {
 
         List<ClassificationEntry> allEntries = fileService.parseClassificationFile();
 
         List<ClassificationEntry> filteredEntries = getFilteredEntries(quantity, allEntries);
 
-        processFilteredEntries(filteredEntries);
+        return processFilteredEntries(filteredEntries);
     }
 
     @SneakyThrows
     @Override
-    public void run(int quantity, Long userId) {
+    public List<TextClassificationData> run(int quantity, Long userId) {
 
         List<ClassificationEntry> allEntries = fileService.parseClassificationFile();
 
         List<ClassificationEntry> filteredEntries = getFilteredEntries(quantity, allEntries);
 
-        processFilteredEntries(filteredEntries, userId);
+        return processFilteredEntries(filteredEntries, userId);
     }
 
-    public void processFilteredEntries(List<ClassificationEntry> entries, Long userId) {
+    public List<TextClassificationData> processFilteredEntries(List<ClassificationEntry> entries, Long userId) {
 
         final List<TextClassificationData> results = entries.stream().map(
                 entry -> {
@@ -56,22 +56,14 @@ public abstract class AbstractUserScenarioStrategy implements UserScenarioStrate
                 }
         ).collect(Collectors.toList());
 
-        System.out.println(results);
+        return results;
 
     }
 
-    public void processFilteredEntries(List<ClassificationEntry> entries) {
+    public List<TextClassificationData> processFilteredEntries(List<ClassificationEntry> entries) {
 
-        final List<TextClassificationData> results = entries.stream().map(
-                entry -> {
-                    TextClassificationData requestBody = createRequestBody(entry);
-                    requestBody.setUserId(createUser());
-                    final ResponseEntity<TextClassificationData> response = restTemplate().postForEntity(getTextClassificationUrl(), requestBody, TextClassificationData.class);
-                    return response.getBody();
-                }
-        ).collect(Collectors.toList());
-
-        System.out.println(results);
+        Long userId = createUser();
+        return processFilteredEntries(entries, userId);
 
     }
 

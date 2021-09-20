@@ -1,9 +1,11 @@
 package com.tcc.datasimulator.controller;
 
+import com.tcc.datasimulator.data.TextClassificationData;
 import com.tcc.datasimulator.strategy.UserScenarioStrategy;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,13 +25,13 @@ public class DataSimulatorController {
     private UserScenarioStrategy randomRiskStrategy;
 
     @GetMapping
-    public void simulate(@PathVariable String mode, @RequestParam int quantity, @RequestParam(required = false) Long userId) {
+    public List<TextClassificationData> simulate(@PathVariable String mode, @RequestParam int quantity, @RequestParam(required = false) Long userId) {
         UserScenarioStrategy strategy = this.getStrategiesMap().get(mode);
 
         if (userId != null) {
-            strategy.run(quantity, userId);
+            return strategy.run(quantity, userId);
         } else {
-            strategy.run(quantity);
+            return strategy.run(quantity);
         }
 
     }

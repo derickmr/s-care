@@ -1,13 +1,16 @@
 package com.tcc.datasimulator.strategy;
 
 
+import com.tcc.datasimulator.data.TextClassificationData;
 import lombok.SneakyThrows;
+
+import java.util.List;
 
 public interface UserScenarioStrategy {
 
     @SneakyThrows
-    void run(int quantity);
+    List<TextClassificationData> run(int quantity);
 
     @SneakyThrows
-    void run(int quantity, Long userId);
+    List<TextClassificationData> run(int quantity, Long userId);
 }
