@@ -2,7 +2,6 @@ package com.tcc.datasimulator.strategy.impl;
 
 import com.tcc.datasimulator.data.*;
 import com.tcc.datasimulator.service.FileService;
-import com.tcc.datasimulator.service.impl.DefaultFileService;
 import com.tcc.datasimulator.strategy.UserScenarioStrategy;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;

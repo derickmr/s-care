@@ -1,14 +1,12 @@
 package com.tcc.datasimulator.strategy.impl;
 
 import com.tcc.datasimulator.data.ClassificationEntry;
-import com.tcc.datasimulator.strategy.UserScenarioStrategy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component("mixedRiskStrategy")
 public class DefaultMixedRiskStrategy extends AbstractUserScenarioStrategy {

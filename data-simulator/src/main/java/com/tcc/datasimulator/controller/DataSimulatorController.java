@@ -1,10 +1,6 @@
 package com.tcc.datasimulator.controller;
 
 import com.tcc.datasimulator.strategy.UserScenarioStrategy;
-import com.tcc.datasimulator.strategy.impl.DefaultMixedRiskStrategy;
-import com.tcc.datasimulator.strategy.impl.DefaultRandomRiskStrategy;
-import com.tcc.datasimulator.strategy.impl.DefaultUserAtNoRiskStrategy;
-import com.tcc.datasimulator.strategy.impl.DefaultUserAtRiskStrategy;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
