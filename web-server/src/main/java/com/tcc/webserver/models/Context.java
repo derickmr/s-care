@@ -18,7 +18,10 @@ public class Context {
     private User user;
 
     private Date date;
+
+    @Column(length = 3000)
     private String text;
+
     private String classification;
     private Double probability;
     private Integer riskFlag;

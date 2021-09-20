@@ -148,6 +148,9 @@ public class DefaultClassificationService implements ClassificationService {
     }
 
     private Context getContextWithLowestProbability(List<Context> contexts) {
+        if (contexts.size() < 2) {
+            return contexts.iterator().next();
+        }
         return contexts.stream().reduce((i, j) -> i.getProbability() < j.getProbability() ? i : j).get();
     }
 
