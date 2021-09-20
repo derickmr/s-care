@@ -13,9 +13,11 @@ import java.util.stream.Collectors;
 @Component("mixedRiskStrategy")
 public class DefaultMixedRiskStrategy extends AbstractUserScenarioStrategy {
 
-    private AbstractUserScenarioStrategy userAtRiskStrategy = new DefaultUserAtRiskStrategy();
+    @Resource
+    private AbstractUserScenarioStrategy userAtRiskStrategy;
 
-    private AbstractUserScenarioStrategy userAtNoRiskStrategy = new DefaultUserAtNoRiskStrategy();
+    @Resource
+    private AbstractUserScenarioStrategy userAtNoRiskStrategy;
 
     @Override
     public List<ClassificationEntry> getFilteredEntries(int quantity, List<ClassificationEntry> entries) {

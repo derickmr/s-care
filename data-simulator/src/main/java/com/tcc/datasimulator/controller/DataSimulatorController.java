@@ -14,19 +14,37 @@ import java.util.Map;
 @RequestMapping(value = "/simulate/{mode}")
 public class DataSimulatorController {
 
-    private Map<String, UserScenarioStrategy> strategiesMap = Map.of(
-            "risk", new DefaultUserAtRiskStrategy(),
-            "noRisk", new DefaultUserAtNoRiskStrategy(),
-            "mixed", new DefaultMixedRiskStrategy(),
-            "random", new DefaultRandomRiskStrategy()
-    );
+    @Resource
+    private UserScenarioStrategy userAtRiskStrategy;
 
-    //TODO: include optional parameters (user id)
+    @Resource
+    private UserScenarioStrategy userAtNoRiskStrategy;
+
+    @Resource
+    private UserScenarioStrategy mixedRiskStrategy;
+
+    @Resource
+    private UserScenarioStrategy randomRiskStrategy;
+
     @GetMapping
-    public void simulate(@PathVariable String mode, @RequestParam int quantity) {
+    public void simulate(@PathVariable String mode, @RequestParam int quantity, @RequestParam(required = false) Long userId) {
+        UserScenarioStrategy strategy = this.getStrategiesMap().get(mode);
 
-        strategiesMap.get(mode).run(quantity);
+        if (userId != null) {
+            strategy.run(quantity, userId);
+        } else {
+            strategy.run(quantity);
+        }
 
+    }
+
+    private Map<String, UserScenarioStrategy> getStrategiesMap() {
+        return Map.of(
+                "risk", userAtRiskStrategy,
+                "noRisk", userAtNoRiskStrategy,
+                "mixed", mixedRiskStrategy,
+                "random", randomRiskStrategy
+        );
     }
 
 }
