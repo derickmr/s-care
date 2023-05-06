@@ -1,2 +1,2 @@
 # s-care
-Repository for my final thesis project
+A Machine Learning-based system for suicidal ideation detection.
